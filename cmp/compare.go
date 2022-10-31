@@ -38,6 +38,8 @@ import (
 	"github.com/google/go-cmp/cmp/internal/diff"
 	"github.com/google/go-cmp/cmp/internal/function"
 	"github.com/google/go-cmp/cmp/internal/value"
+
+	"google.golang.org/protobuf/proto"
 )
 
 // TODO(≥go1.18): Use any instead of interface{}.
@@ -91,6 +93,11 @@ import (
 // If there is a cycle, then the pointed at values are considered equal
 // only if both addresses were previously visited in the same path step.
 func Equal(x, y interface{}, opts ...Option) bool {
+	if px, ok := x.(proto.Message); ok {
+		if py, ok := y.(proto.Message); ok {
+			return proto.Equal(px, py)
+		}
+	}
 	s := newState(opts)
 	s.compareAny(rootStep(x, y))
 	return s.result.Equal()
